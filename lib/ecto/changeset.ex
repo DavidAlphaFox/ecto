@@ -1088,6 +1088,9 @@ defmodule Ecto.Changeset do
       [title: "is_foo"]
 
   """
+  ## 验证数据，validator是个函数
+  ## 接受一个atom的field和一个term做为参数，返回一个空列表
+  ## 或者包含错误的列表
   @spec validate_change(t, atom, (atom, term -> [error])) :: t
   def validate_change(changeset, field, validator) when is_atom(field) do
     %{changes: changes, errors: errors} = changeset
