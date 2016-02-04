@@ -152,7 +152,7 @@ defmodule Ecto.Pool do
     end
   end
 ## 签出进程，然后执行
-## 接着签入进程
+## 接着签入进程。
   defp do_run(pool_mod, pool, timeout, fun) do
     case checkout(pool_mod, pool, timeout) do
       {:ok, worker, conn, time} ->
