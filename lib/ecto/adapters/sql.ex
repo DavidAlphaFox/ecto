@@ -233,7 +233,7 @@ defmodule Ecto.Adapters.SQL do
         exit({:noconnect, {__MODULE__, :query, [repo, sql, params, opts]}})
     end
   end
-
+## 执行查询
   defp query(repo, sql, params, outer_queue_time, mapper, opts) do
     {pool_mod, pool, pool_timeout, timeout} = repo.__pool__
     pool_timeout = Keyword.get(opts, :pool_timeout, pool_timeout)
