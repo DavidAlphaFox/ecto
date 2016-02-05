@@ -539,10 +539,12 @@ defmodule Ecto.Adapters.SQL do
     {pool_mod, pool, pool_timeout, timeout} = repo.__pool__
     pool_timeout = Keyword.get(opts, :pool_timeout, pool_timeout)
     opts         = Keyword.put_new(opts, :timeout, timeout)
-
+    # transaction函数
     transaction = fn
       :opened, ref, {mod, _conn}, queue_time ->
         mode = transaction_mode(pool_mod, pool, pool_timeout)
+        # 处在打开状态，执行transaction函数
+        # fun是用户的事务函数
         transaction(repo, ref, mod, mode, queue_time, pool_timeout, opts, fun)
       :already_open, ref, _, _ ->
         {{:return, Pool.with_rollback(:already_open, ref, fun)}, nil}
@@ -576,9 +578,11 @@ defmodule Ecto.Adapters.SQL do
   defp transaction_mode(_, _, _), do: :raw
 
   defp transaction(repo, ref, mod, mode, queue_time, pool_timeout, opts, fun) do
+    # 执行begin_sql
     case begin(repo, mod, mode, queue_time, opts) do
       {{:ok, _}, entry} ->
         safe = fn -> log(repo, entry); fun.() end
+        # 使用带有rollback的pool
         case Pool.with_rollback(:opened, ref, safe) do
           {:ok, _} = ok ->
             commit(repo, ref, mod, mode, pool_timeout, opts, {:return, ok})
