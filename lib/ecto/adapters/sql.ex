@@ -431,6 +431,7 @@ defmodule Ecto.Adapters.SQL do
     end
 
     {pool, opts} = Keyword.pop(opts, :pool)
+    # 启动pool
     pool.start_link(connection, opts)
   end
 
