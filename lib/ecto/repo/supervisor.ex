@@ -28,6 +28,7 @@ defmodule Ecto.Repo.Supervisor do
   @doc """
   Parses the OTP configuration for compile time.
   """
+  # 分析参数
   def parse_config(repo, opts) do
     otp_app = Keyword.fetch!(opts, :otp_app)
     config  = Application.get_env(otp_app, repo, [])
@@ -45,7 +46,8 @@ defmodule Ecto.Repo.Supervisor do
 
     {otp_app, adapter, pool(repo, config), config}
   end
-
+  # 获取pool的参数
+  # 使用的线程池，名字，链接时长
   defp pool(repo, config) do
     pool         = Keyword.get(config, :pool, Ecto.Pools.Poolboy)
     name         = Keyword.get(config, :pool_name, default_pool_name(repo, config))
@@ -114,7 +116,7 @@ defmodule Ecto.Repo.Supervisor do
     children = [
       supervisor(adapter, [repo, opts])
     ]
-
+    #根据情况建立cache
     if Keyword.get(opts, :query_cache_owner, repo == repo.__query_cache__) do
       :ets.new(repo.__query_cache__, [:set, :public, :named_table, read_concurrency: true])
     end

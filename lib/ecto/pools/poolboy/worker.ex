@@ -30,7 +30,7 @@ defmodule Ecto.Pools.Poolboy.Worker do
   end
 
   ## Callbacks
-
+  ## 初始化
   def init({module, opts}) do
     Process.flag(:trap_exit, true)
     {opts, params} = Keyword.split(opts, [:lazy, :shutdown])
@@ -55,6 +55,7 @@ defmodule Ecto.Pools.Poolboy.Worker do
   ## Lazy connection handling
 
   def handle_call(request, from, %{conn: nil, params: params, module: module} = s) do
+    # 当第一次查询的时候，建立链接
     case Connection.connect(module, params) do
       {:ok, conn}   -> handle_call(request, from, %{s | conn: conn})
       {:error, err} -> {:reply, {:error, err}, s}

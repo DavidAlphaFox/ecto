@@ -27,7 +27,7 @@ if Code.ensure_loaded?(Postgrex.Connection) do
         %Ecto.Query.Tagged{value: value} -> value
         value -> value
       end
-
+      # 使用Connection进行query
       case Postgrex.Connection.query(conn, sql, params, opts) do
         {:ok, res}        -> {:ok, Map.from_struct(res)}
         {:error, _} = err -> err
