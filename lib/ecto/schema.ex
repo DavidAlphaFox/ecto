@@ -273,12 +273,13 @@ defmodule Ecto.Schema do
   defmacro __using__(_) do
     quote do
       import Ecto.Schema, only: [schema: 2, embedded_schema: 1]
-
+      # 加载的瞬间
+      # 设置主键
       @primary_key {:id, :id, autogenerate: true}
       @timestamps_opts []
       @foreign_key_type :id
       @before_compile Ecto.Schema
-
+      # 设置各种模块属性
       Module.register_attribute(__MODULE__, :ecto_fields, accumulate: true)
       Module.register_attribute(__MODULE__, :ecto_assocs, accumulate: true)
       Module.register_attribute(__MODULE__, :ecto_embeds, accumulate: true)
@@ -308,15 +309,20 @@ defmodule Ecto.Schema do
   Defines a schema with a source name and field definitions.
   """
   defmacro schema(source, [do: block]) do
+    ## source 代表着表名称
+    ## block 是里面的field
     quote do
       source = unquote(source)
 
       unless is_binary(source) do
         raise ArgumentError, "schema source must be a string, got: #{inspect source}"
       end
-
+      ## 注册changeset_fields
+      ## 注册struct_fields
       Module.register_attribute(__MODULE__, :changeset_fields, accumulate: true)
       Module.register_attribute(__MODULE__, :struct_fields, accumulate: true)
+      ## Puts an Erlang attribute to the given module with the given key and value.
+      ## struct_fields为key，然后value为Metadata元组
       Module.put_attribute(__MODULE__, :struct_fields,
                            {:__meta__, %Metadata{state: :built, source: {nil, source}}})
 
@@ -324,7 +330,10 @@ defmodule Ecto.Schema do
         case @primary_key do
           false ->
             []
+          # 名字，类型，参数
           {name, type, opts} ->
+            # 给Schema增加域
+            # 模块，名字，类型，是否是主键，其它参数
             Ecto.Schema.__field__(__MODULE__, name, type, true, opts)
             [name]
           other ->
@@ -985,19 +994,26 @@ defmodule Ecto.Schema do
 
   @doc false
   def __field__(mod, name, type, pk?, opts) do
+    # 检查类型
     check_type!(name, type, opts[:virtual])
 
+    # 获取默认值
     default = default_for_type(type, opts)
+    # 检查默认值
     check_default!(name, type, default)
 
+    # 给当前模块增加changeset_fields中的名字和类型
     Module.put_attribute(mod, :changeset_fields, {name, type})
     put_struct_field(mod, name, default)
 
+    # 如果域不是虚拟域
     unless opts[:virtual] do
+      # 是否是写后就更新
       if raw = opts[:read_after_writes] do
         Module.put_attribute(mod, :ecto_raw, name)
       end
-
+      
+      #是否是自动生成
       if gen = opts[:autogenerate] do
         store_autogenerate!(mod, name, type, pk?)
       end
@@ -1005,7 +1021,7 @@ defmodule Ecto.Schema do
       if raw && gen do
         raise ArgumentError, "cannot mark the same field as autogenerate and read_after_writes"
       end
-
+      # 给模块增加ecto_fields,名字＋类型元组
       Module.put_attribute(mod, :ecto_fields, {name, type})
     end
   end
@@ -1184,6 +1200,8 @@ defmodule Ecto.Schema do
 
   @doc false
   def __before_compile__(env) do
+    # 如果模块没有struct_fields
+    # 那么需要定义
     unless Module.get_attribute(env.module, :struct_fields) do
       raise "module #{inspect env.module} uses Ecto.Model (or Ecto.Schema) but it " <>
             "does not define a schema. Please cherry pick the functionality you want " <>
@@ -1214,11 +1232,11 @@ defmodule Ecto.Schema do
 
   defp put_struct_field(mod, name, assoc) do
     fields = Module.get_attribute(mod, :struct_fields)
-
+    # 检查防止重定义
     if List.keyfind(fields, name, 0) do
       raise ArgumentError, "field/association #{inspect name} is already set on schema"
     end
-
+    # 增加名字和默认值
     Module.put_attribute(mod, :struct_fields, {name, assoc})
   end
 
@@ -1236,14 +1254,17 @@ defmodule Ecto.Schema do
         :ok
     end
   end
-
+  # 检查类型
   defp check_type!(name, type, virtual?) do
     cond do
+      # 只有虚拟域，才可以是任意类型
       type == :any and not virtual? ->
         raise ArgumentError, "only virtual fields can have type :any, " <>
                              "invalid type for field #{inspect name}"
+      # 是基础类型，并且不是date,time或者datetime类型                  
       Ecto.Type.primitive?(type) and not type in [:date, :time, :datetime] ->
         true
+      # 如果是原子类型，那么需要确保该模块已经加在了  
       is_atom(type) ->
         if Code.ensure_compiled?(type) and function_exported?(type, :type, 0) do
           type
@@ -1251,6 +1272,7 @@ defmodule Ecto.Schema do
           raise_type_error(name, type)
         end
       true ->
+        ## 剩余情况都是无效类型
         raise ArgumentError, "invalid type #{inspect type} for field #{inspect name}"
     end
   end
@@ -1271,6 +1293,7 @@ defmodule Ecto.Schema do
   defp raise_type_error_hint(_),
     do: ""
 
+  # 检查默认值
   defp check_default!(_name, :binary_id, _default), do: :ok
   defp check_default!(_name, {:embed, _}, _default), do: :ok
   defp check_default!(name, type, default) do
@@ -1282,19 +1305,19 @@ defmodule Ecto.Schema do
                              "field #{inspect name} of type #{inspect type}"
     end
   end
-
+  # 如果是主键
   defp store_autogenerate!(mod, name, type, true) do
     if id = autogenerate_id(type) do
       if Module.get_attribute(mod, :ecto_autogenerate_id) do
         raise ArgumentError, "only one primary key with ID type may be marked as autogenerated"
       end
-
+      # 设置主键名称和类型
       Module.put_attribute(mod, :ecto_autogenerate_id, {name, id})
     else
       store_autogenerate!(mod, name, type, false)
     end
   end
-
+  # 如果不是主键
   defp store_autogenerate!(mod, name, type, false) do
     cond do
       _ = autogenerate_id(type) ->

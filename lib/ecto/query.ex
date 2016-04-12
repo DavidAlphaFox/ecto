@@ -280,7 +280,7 @@ defmodule Ecto.Query do
     unless Keyword.keyword?(kw) do
       raise ArgumentError, "second argument to `from` must be a keyword list"
     end
-
+    
     {quoted, binds, count_bind} = From.build(expr, __CALLER__)
     from(kw, __CALLER__, count_bind, quoted, binds)
   end

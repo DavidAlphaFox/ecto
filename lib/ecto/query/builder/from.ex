@@ -55,6 +55,7 @@ defmodule Ecto.Query.Builder.From do
 
     {count_bind, quoted} =
       case Macro.expand(expr, env) do
+        # 展开的模型是原子
         model when is_atom(model) ->
           # Get the source at runtime so no unnecessary compile time
           # dependencies between modules are added
