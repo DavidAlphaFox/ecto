@@ -68,6 +68,7 @@ defmodule Ecto.Query.Planner do
       {_, select, prepared} = query_without_cache(query, operation, adapter)
       {build_meta(query, select), prepared, params}
     else
+      # 获取Repo的缓存
       table = repo.__query_cache__
       case cache_lookup(repo, table, key) do
         [{_, select, prepared}] ->
@@ -132,8 +133,10 @@ defmodule Ecto.Query.Planner do
       traverse_exprs(query, operation, {[], []}, &{&3, merge_cache(&1, &2, &3, &4, adapter)})
     {query, Enum.reverse(params), finalize_cache(query, operation, cache)}
   end
-
+  # 是否使用cache
+  # 当是select,distinct,limit和offset的时候
   defp merge_cache(kind, query, expr, {cache, params}, adapter)
+      #~w()a是直接转换成Atom的语法
       when kind in ~w(select distinct limit offset)a do
     if expr do
       {params, cacheable?} = cast_and_merge_params(kind, query, expr, params, adapter)
@@ -181,7 +184,8 @@ defmodule Ecto.Query.Planner do
         {[cast_param(kind, query, expr, v, type, adapter)|acc], cacheable?}
     end
   end
-
+  # 通过对整个查询树进行遍历
+  # 决定是否缓存
   defp merge_cache(_left, _right, false),  do: :nocache
   defp merge_cache(_left, :nocache, true), do: :nocache
   defp merge_cache(left, right, true),     do: [left|right]
