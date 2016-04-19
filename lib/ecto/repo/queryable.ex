@@ -85,14 +85,20 @@ defmodule Ecto.Repo.Queryable do
   ## Helpers
 
   def execute(operation, repo, adapter, queryable, opts) when is_list(opts) do
+    # 将queryable转化成查询计划
+    # 其中包括元信息和prepared的语句
+    # 以及其中的参数
     {meta, prepared, params} =
       queryable
       |> Queryable.to_query()
       |> Planner.query(operation, repo, adapter)
-
+    #  如果是查询语句
     if meta.select do
+      # 需要进行预先处理，将Model的Schema加载进来
       preprocess = preprocess(meta.prefix, meta.sources, adapter)
+      # 交给adapter进行查询
       {count, rows} = adapter.execute(repo, meta, prepared, params, preprocess, opts)
+      # 转化成Model
       {count,
         rows
         |> Ecto.Repo.Assoc.query(meta.assocs, meta.sources)
