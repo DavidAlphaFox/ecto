@@ -39,7 +39,10 @@ defmodule Mix.Tasks.Ecto.Migrate do
     * `--quiet` - do not log migration commands
 
   """
-
+  # 可以通过参数 -r 来制定Repo的配置
+  # 这样可以让一个项目再有多个Repo的时候,分开处理数据的建立
+  # 不过怎么确定每个Migration属于哪个仓库呢？
+  
   @doc false
   def run(args, migrator \\ &Ecto.Migrator.run/4) do
     repos = parse_repo(args)

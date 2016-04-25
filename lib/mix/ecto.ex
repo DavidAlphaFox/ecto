@@ -11,7 +11,8 @@ defmodule Mix.Ecto do
   def parse_repo(args) do
     parse_repo(args, [])
   end
-
+  # 如果找到--repo或-r
+  # 就将相应的模块放入acc中
   defp parse_repo([key, value|t], acc) when key in ~w(--repo -r) do
     parse_repo t, [Module.concat([value])|acc]
   end
