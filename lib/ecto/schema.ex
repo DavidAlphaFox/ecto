@@ -393,6 +393,7 @@ defmodule Ecto.Schema do
       `:read_after_writes`.
 
   """
+  ## 定义表的属性
   defmacro field(name, type \\ :string, opts \\ []) do
     quote do
       Ecto.Schema.__field__(__MODULE__, unquote(name), unquote(type), false, unquote(opts))
@@ -992,6 +993,9 @@ defmodule Ecto.Schema do
     end
   end
 
+  ## 使用changeset_fields 来保存字段和类型的对应关系
+  ## 使用struct_fields 来保存字段和默认值，之后通过
+  ## defstruct 完成定义
   @doc false
   def __field__(mod, name, type, pk?, opts) do
     # 检查类型
@@ -1096,14 +1100,15 @@ defmodule Ecto.Schema do
       def __changeset__, do: unquote(map)
     end
   end
-
+  ## 为Module定义struct
   @doc false
   def __defstruct__(struct_fields) do
     quote do
       defstruct unquote(Macro.escape(struct_fields))
     end
   end
-
+  ## 为Module添加__schema__
+  ## 用来完成后面的操作
   @doc false
   def __schema__(source, fields, primary_key) do
     field_names = Enum.map(fields, &elem(&1, 0))
@@ -1214,8 +1219,10 @@ defmodule Ecto.Schema do
   defp association(mod, cardinality, name, association, opts) do
     not_loaded  = %Ecto.Association.NotLoaded{__owner__: mod,
                     __field__: name, __cardinality__: cardinality}
+    ## 默认给这个表字段放入not_loaded           
     put_struct_field(mod, name, not_loaded)
     opts = [cardinality: cardinality] ++ opts
+    ## 获取相应association模块的struct
     struct = association.struct(mod, name, opts)
     Module.put_attribute(mod, :ecto_assocs, {name, struct})
 
@@ -1229,7 +1236,7 @@ defmodule Ecto.Schema do
     __field__(mod, name, {:embed, struct}, false, opts)
     Module.put_attribute(mod, :ecto_embeds, {name, struct})
   end
-
+  ## 将特定的表属性，放入struct中
   defp put_struct_field(mod, name, assoc) do
     fields = Module.get_attribute(mod, :struct_fields)
     # 检查防止重定义

@@ -279,7 +279,7 @@ defmodule Ecto.Association.Has do
         "The only valid options are: " <>
         Enum.map_join(@on_replace_opts, ", ", &"`#{inspect &1}`")
     end
-
+    ## 定义关联表的所有属性
     %__MODULE__{
       field: name,
       cardinality: Keyword.fetch!(opts, :cardinality),
