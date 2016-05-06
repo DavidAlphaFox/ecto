@@ -351,7 +351,7 @@ defmodule Ecto.Type do
   defp dump_embed(%{cardinality: :one} = embed, nil, _fun) do
     {:ok, %Ecto.Query.Tagged{value: nil, type: type({:embed, embed})}}
   end
-
+  # 获取内嵌
   defp dump_embed(%{cardinality: :one, related: model, field: field} = embed,
                   value, fun) when is_map(value) do
     assert_replace_strategy!(embed)

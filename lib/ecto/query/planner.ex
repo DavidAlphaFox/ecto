@@ -632,7 +632,7 @@ defmodule Ecto.Query.Planner do
       {:fragment, _, _} -> :any
     end
   end
-
+## 获取类型
   defp type!(kind, query, expr, model, field) when is_atom(model) do
     if type = model.__schema__(:type, field) do
       type
