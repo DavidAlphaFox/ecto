@@ -106,7 +106,7 @@ defmodule Ecto.Repo.Supervisor do
   def init({name, repo, otp_app, adapter, opts}) do
     opts = config(repo, otp_app, opts)
     {default_pool, _, _, _} = repo.__pool__
-
+    ## 此处将Poolboy设置为默认的pool模块
     opts =
       opts
       |> Keyword.delete(:name)

@@ -235,6 +235,7 @@ defmodule Ecto.Adapters.SQL do
   end
 ## 执行查询
   defp query(repo, sql, params, outer_queue_time, mapper, opts) do
+    ## 获取相应的pool
     {pool_mod, pool, pool_timeout, timeout} = repo.__pool__
     pool_timeout = Keyword.get(opts, :pool_timeout, pool_timeout)
     opts         = Keyword.put_new(opts, :timeout, timeout)
