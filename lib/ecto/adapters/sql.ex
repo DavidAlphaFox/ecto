@@ -244,7 +244,7 @@ defmodule Ecto.Adapters.SQL do
     query_fun = fn({mod, conn}, inner_queue_time) ->
       query(mod, conn, inner_queue_time || outer_queue_time, sql, params, log?, opts)
     end
-
+    # 使用相应的pool来执行查询
     case Pool.run(pool_mod, pool, pool_timeout, query_fun) do
       {:ok, {result, entry}} ->
         decode(result, entry, mapper)

@@ -42,6 +42,9 @@ defmodule Mix.Tasks.Ecto.Migrate do
   # 可以通过参数 -r 来制定Repo的配置
   # 这样可以让一个项目再有多个Repo的时候,分开处理数据的建立
   # 不过怎么确定每个Migration属于哪个仓库呢？
+  # 通过migrations_path来判定使用的Migration
+  # Migration放在Repo最后的名称下
+  # 例如Custom.ARepo的Migration，放在priv/a_repo/migrations
   
   @doc false
   def run(args, migrator \\ &Ecto.Migrator.run/4) do
